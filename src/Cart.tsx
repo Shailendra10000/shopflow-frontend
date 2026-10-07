@@ -1,5 +1,6 @@
-import { useState } from 'react';                                // NEW
-import { useNavigate } from 'react-router-dom';                  // NEW
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
 
 interface Product {
   id: number;
@@ -18,18 +19,18 @@ interface CartProps {
 }
 
 function Cart({ cart, onCheckoutSuccess }: CartProps) {
-  const [error, setError] = useState("");                        // NEW
-  const navigate = useNavigate();                                // NEW
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   function handleCheckout() {
-    setError("");                                                // NEW
+    setError("");
 
     const token = localStorage.getItem("token");
-    if (!token) {                                                // NEW
-      navigate("/login");                                        // NEW
-      return;                                                    // NEW
-    }                                                            // NEW
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
     const requestBody = {
       items: cart.map(item => ({
@@ -47,31 +48,54 @@ function Cart({ cart, onCheckoutSuccess }: CartProps) {
       body: JSON.stringify(requestBody)
     })
       .then(response => {
-        if (!response.ok) {                                      // NEW
-          throw new Error("Checkout failed. Please log in again and retry.");   // NEW
-        }                                                        // NEW
+        if (!response.ok) {
+          throw new Error("Checkout failed. Please log in again and retry.");
+        }
         return response.json();
       })
       .then(data => {
         console.log("Order created:", data);
         onCheckoutSuccess();
       })
-      .catch(err => setError(err.message));                      // NEW
+      .catch(err => setError(err.message));
   }
 
   return (
-    <div>
-      <h2>Cart</h2>
-      {cart.length === 0 && <p>Cart is empty</p>}
-      {cart.map(item => (
-        <p key={item.product.id}>
-          {item.product.name} × {item.quantity} = ${(item.product.price * item.quantity).toFixed(2)}
-        </p>
-      ))}
-      <p><strong>Total: ${total.toFixed(2)}</strong></p>
-      {error && <p style={{ color: "red" }}>{error}</p>}         {/* NEW */}
-      {cart.length > 0 && <button onClick={handleCheckout}>Checkout</button>}
-    </div>
+    <Box sx={{ width: { xs: '100vw', sm: 400 }, p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography variant="h5" sx={{ mb: 2 }}>Your cart</Typography>
+
+      {cart.length === 0 && (
+        <Typography color="text.secondary">Your cart is empty.</Typography>
+      )}
+
+      <Stack spacing={2} divider={<Divider flexItem />} sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        {cart.map(item => (
+          <Box key={item.product.id} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+              <Typography sx={{ fontWeight: 700 }}>{item.product.name}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                ${item.product.price.toFixed(2)} × {item.quantity}
+              </Typography>
+            </Box>
+            <Typography sx={{ fontWeight: 700 }}>
+              ${(item.product.price * item.quantity).toFixed(2)}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+
+      <Divider sx={{ my: 2 }} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h6">Total</Typography>
+        <Typography variant="h6" color="primary">${total.toFixed(2)}</Typography>
+      </Box>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      <Button variant="contained" size="large" disabled={cart.length === 0} onClick={handleCheckout}>
+        Checkout
+      </Button>
+    </Box>
   );
 }
 
