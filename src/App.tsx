@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';              // NEW: Link
+import { Routes, Route } from 'react-router-dom';
+import { Alert, Box, CircularProgress, Container, Drawer, Typography } from '@mui/material';
+import Header from './Header';
 import ProductCard from './ProductCard';
 import ProductDetail from './ProductDetail';
 import Cart from './Cart';
 import Login from './Login';
-import MyOrders from './MyOrders';                                  // NEW
+import MyOrders from './MyOrders';
+import Register from "./Register";
 
 interface Product {
   id: number;
@@ -22,6 +25,8 @@ function Catalog() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:8080/products")
@@ -51,27 +56,58 @@ function Catalog() {
 
   function handleCheckoutSuccess() {
     setCart([]);
+    setCartOpen(false);
     alert("Order placed successfully!");
   }
 
-  if (loading) {
-    return <p>Loading products...</p>;
-  }
-
-  if (error) {
-    return <p style={{ color: "red" }}>{error}</p>;
-  }
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const visibleProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div>
-      <h1>ShopFlow</h1>
-      <Link to="/my-orders">My Orders</Link>                         {/* NEW */}
-      {products.map(product => (
-        <ProductCard product={product} key={product.id} onAddToCart={addToCart} />
-      ))}
-      <hr />
-      <Cart cart={cart} onCheckoutSuccess={handleCheckoutSuccess} />
-    </div>
+    <Box>
+      <Header
+        cartCount={cartCount}
+        onCartClick={() => setCartOpen(true)}
+        search={search}
+        onSearchChange={setSearch}
+      />
+
+      <Container sx={{ py: 4 }}>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {error && <Alert severity="error">{error}</Alert>}
+
+        {!loading && !error && (
+          <>
+            <Typography variant="h4" sx={{ mb: 3 }}>Shop all products</Typography>
+            {visibleProducts.length === 0 && (
+              <Typography color="text.secondary">No products found.</Typography>
+            )}
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 3,
+                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              }}
+            >
+              {visibleProducts.map(product => (
+                <ProductCard product={product} key={product.id} onAddToCart={addToCart} />
+              ))}
+            </Box>
+          </>
+        )}
+      </Container>
+
+      <Drawer anchor="right" open={cartOpen} onClose={() => setCartOpen(false)}>
+        <Cart cart={cart} onCheckoutSuccess={handleCheckoutSuccess} />
+      </Drawer>
+    </Box>
   );
 }
 
@@ -81,7 +117,8 @@ function App() {
       <Route path="/" element={<Catalog />} />
       <Route path="/products/:id" element={<ProductDetail />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/my-orders" element={<MyOrders />} />            {/* NEW */}
+      <Route path="/my-orders" element={<MyOrders />} />
+      <Route path="/register" element={<Register />} />
     </Routes>
   );
 }
