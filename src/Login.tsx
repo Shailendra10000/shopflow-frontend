@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom"; // NEW: Link, useLocation
 import {
   Alert, Box, Button, CircularProgress, IconButton,
-  InputAdornment, TextField, Typography,
+  InputAdornment, Link, TextField, Typography, // NEW: Link
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -11,6 +11,8 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const justRegistered = location.state?.registered === true; // NEW
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -87,6 +89,7 @@ export default function Login() {
             <Typography color="text.secondary">Log in to continue shopping.</Typography>
           </Box>
 
+          {justRegistered && <Alert severity="success">Account created. Please log in.</Alert>} {/* NEW */}
           {error && <Alert severity="error">{error}</Alert>}
 
           <TextField
@@ -135,6 +138,11 @@ export default function Login() {
           <Button color="inherit" onClick={() => navigate("/")}>
             Continue browsing as guest
           </Button>
+
+          {/* NEW */}
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+            New here? <Link component={RouterLink} to="/register">Create an account</Link>
+          </Typography>
         </Box>
       </Box>
     </Box>

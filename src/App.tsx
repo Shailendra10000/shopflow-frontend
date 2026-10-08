@@ -7,6 +7,7 @@ import ProductDetail from './ProductDetail';
 import Cart from './Cart';
 import Login from './Login';
 import MyOrders from './MyOrders';
+import Register from "./Register";
 
 interface Product {
   id: number;
@@ -117,6 +118,7 @@ function App() {
       <Route path="/products/:id" element={<ProductDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/my-orders" element={<MyOrders />} />
+      <Route path="/register" element={<Register />} />
     </Routes>
   );
 }
